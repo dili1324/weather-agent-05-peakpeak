@@ -77,15 +77,7 @@ jobs:
             python scripts/redact_ci_log.py /tmp/tempo-whoami.stderr
             exit "$code"
           fi
-          python - <<'PY'
-          import json
-          from pathlib import Path
-
-          data = json.loads(Path("/tmp/tempo-whoami.stdout").read_text())
-          if data.get("ready") is not True:
-              raise SystemExit("Tempo wallet is not ready")
-          print("Tempo wallet ready=true")
-          PY
+          python scripts/check_tempo_whoami.py /tmp/tempo-whoami.stdout /tmp/tempo-whoami.stderr
 
       - name: Run Weather Agent
         env:

@@ -13,6 +13,18 @@ def test_extract_json_from_tempo_output_with_continue_line() -> None:
     assert parsed["data"][0]["name"] == "Hà Nội"
 
 
+def test_extract_json_from_tempo_output_with_installer_lines_before_object() -> None:
+    output = (
+        "installing tempo-wallet ...\n"
+        "installed tempo-wallet\n"
+        '{\n  "ready": true,\n  "wallet": "0x8ef9"\n}\n'
+    )
+
+    parsed = _extract_json_from_output(output)
+
+    assert parsed["ready"] is True
+
+
 def test_redact_tempo_output_removes_cli_auth_code() -> None:
     output = "Continue at: https://wallet.tempo.xyz/api/auth/cli?code=SECRET"
 

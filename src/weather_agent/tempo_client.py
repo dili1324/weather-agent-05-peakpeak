@@ -33,6 +33,22 @@ def _extract_json_from_output(output: str) -> Any:
     except json.JSONDecodeError:
         pass
 
+    object_start = stripped.find("{")
+    object_end = stripped.rfind("}")
+    if object_start != -1 and object_end > object_start:
+        try:
+            return json.loads(stripped[object_start : object_end + 1])
+        except json.JSONDecodeError:
+            pass
+
+    array_start = stripped.find("[")
+    array_end = stripped.rfind("]")
+    if array_start != -1 and array_end > array_start:
+        try:
+            return json.loads(stripped[array_start : array_end + 1])
+        except json.JSONDecodeError:
+            pass
+
     # Tempo CLI may print helper lines before the actual response payload.
     for line in reversed(stripped.splitlines()):
         candidate = line.strip()
