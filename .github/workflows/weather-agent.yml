@@ -9,7 +9,14 @@ on:
 jobs:
   run-weather-agent:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    env:
+      WEATHER_CITY_QUERY: Hanoi,VN
+      WEATHER_UNITS: metric
+      WEATHER_LANG: vi
+      WEATHER_PAYMENT_MODE: mppx
+      ENABLE_GPT_SUMMARY: "false"
+      MPPX_COMMAND_TIMEOUT_SECONDS: "120"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,6 +26,13 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: node_mppx/package-lock.json
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
@@ -26,21 +40,55 @@ jobs:
           python -m pip install -r requirements-lock.txt
           python -m pip install --no-build-isolation -e .
 
+      - name: Install Node dependencies
+        working-directory: node_mppx
+        run: npm ci
+
       - name: Install Tempo CLI
         run: |
           curl -fsSL https://tempo.xyz/install | bash
           echo "$HOME/.tempo/bin" >> "$GITHUB_PATH"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
+      - name: Restore Tempo accounts CLI store
+        env:
+          TEMPO_ACCOUNTS_CLI_STORE_B64_PART1: ${{ secrets.TEMPO_ACCOUNTS_CLI_STORE_B64_PART1 }}
+          TEMPO_ACCOUNTS_CLI_STORE_B64_PART2: ${{ secrets.TEMPO_ACCOUNTS_CLI_STORE_B64_PART2 }}
+        run: |
+          test -n "$TEMPO_ACCOUNTS_CLI_STORE_B64_PART1"
+          test -n "$TEMPO_ACCOUNTS_CLI_STORE_B64_PART2"
+          mkdir -p "$HOME/.tempo/wallet"
+          chmod 700 "$HOME/.tempo"
+          chmod 700 "$HOME/.tempo/wallet"
+          printf '%s%s' "$TEMPO_ACCOUNTS_CLI_STORE_B64_PART1" "$TEMPO_ACCOUNTS_CLI_STORE_B64_PART2" | base64 --decode > "$HOME/.tempo/wallet/store.json"
+          chmod 600 "$HOME/.tempo/wallet/store.json"
+          echo "Tempo wallet store restored"
+
+      - name: Check restored Tempo wallet
+        run: |
+          set +e
+          tempo wallet --format json whoami > /tmp/tempo-whoami.stdout 2> /tmp/tempo-whoami.stderr
+          code=$?
+          if [ "$code" -ne 0 ]; then
+            echo "tempo wallet whoami failed with exit_code=$code"
+            echo "stdout:"
+            python scripts/redact_ci_log.py /tmp/tempo-whoami.stdout
+            echo "stderr:"
+            python scripts/redact_ci_log.py /tmp/tempo-whoami.stderr
+            exit "$code"
+          fi
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path("/tmp/tempo-whoami.stdout").read_text())
+          if data.get("ready") is not True:
+              raise SystemExit("Tempo wallet is not ready")
+          print("Tempo wallet ready=true")
+          PY
+
       - name: Run Weather Agent
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TEMPO_BIN: tempo
-          MPP_MAX_SPEND_USD: ${{ vars.MPP_MAX_SPEND_USD || '0.05' }}
-          WEATHER_CITY_QUERY: Hanoi,VN
-          WEATHER_UNITS: metric
-          WEATHER_LANG: vi
-          ENABLE_GPT_SUMMARY: ${{ vars.ENABLE_GPT_SUMMARY || 'false' }}
-          GPT_MODEL: ${{ vars.GPT_MODEL || 'gpt-4o' }}
         run: python -m weather_agent
