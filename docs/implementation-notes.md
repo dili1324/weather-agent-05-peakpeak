@@ -4,7 +4,7 @@
 
 - Created repository structure.
 - Added Python 3.12 CI workflow.
-- Added daily GitHub Actions workflow scheduled for 07:00 Asia/Ho_Chi_Minh.
+- Added daily GitHub Actions workflow scheduled for 06:50 Asia/Ho_Chi_Minh.
 - Added `.env.example` and `.gitignore`.
 
 ## Phase 2

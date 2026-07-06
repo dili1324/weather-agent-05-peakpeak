@@ -3,8 +3,8 @@ name: Weather Agent
 on:
   workflow_dispatch:
   schedule:
-    # Fallback only. External scheduler is primary; 00:07 UTC is 07:07 Asia/Ho_Chi_Minh.
-    - cron: "7 0 * * *"
+    # Daily at 06:50 Asia/Ho_Chi_Minh (GMT+7).
+    - cron: "50 23 * * *"
 
 jobs:
   run-weather-agent:

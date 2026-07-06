@@ -1,6 +1,6 @@
-# Weather Agent
+# weather-agent-tempoisno010x2
 
-Weather Agent is a small Python 3.12 application that sends the current weather in Hanoi to Telegram. The current priority is an MVP proof of concept: run locally on macOS, pay through a secondary/test Tempo Wallet, and confirm Telegram receives the weather report.
+weather-agent-tempoisno010x2 is a small Python 3.12 application that sends the current weather in Hanoi to Telegram. The current priority is an MVP proof of concept: run locally on macOS, pay through a secondary/test Tempo Wallet, and confirm Telegram receives the weather report.
 
 The original production path is:
 
@@ -16,7 +16,7 @@ No private key, seed phrase, wallet secret, Telegram token, or paid API key is c
 
 Implemented:
 
-- GitHub Actions scheduler at `0 0 * * *` UTC, which is 07:00 in Asia/Ho_Chi_Minh.
+- GitHub Actions scheduler at `50 23 * * *` UTC, which is 06:50 in Asia/Ho_Chi_Minh.
 - Python 3.12 application under `src/weather_agent`.
 - OpenWeather MPP integration through `https://openweather.mpp.paywithlocus.com/openweather`.
 - Local OpenWeather MPP payment mode through `node_mppx` using `mppx` + `accounts/cli`.
@@ -65,7 +65,7 @@ scripts/make_clean_zip.sh
 Or run the equivalent command manually:
 
 ```bash
-zip -r weather-agent-clean.zip . -x ".git/*" ".venv/*" "node_modules/*" "node_mppx/node_modules/*" "__MACOSX/*" "*/__MACOSX/*" "*.egg-info/*" "*/*.egg-info/*" "*.DS_Store" ".env"
+zip -r weather-agent-tempoisno010x2-clean.zip . -x ".git/*" ".venv/*" "node_modules/*" "node_mppx/node_modules/*" "__MACOSX/*" "*/__MACOSX/*" "*.egg-info/*" "*/*.egg-info/*" "*.DS_Store" ".env"
 ```
 
 ## Configuration
@@ -209,7 +209,7 @@ For local automated payment using Tempo's CLI-managed Access Key first, see [doc
    - `GPT_MODEL`
 3. Ensure the runner has an officially supported Tempo Wallet credential/session with scoped spending limits.
 4. Use the `Weather Agent` workflow manually once with `workflow_dispatch`.
-5. After verification, the scheduled workflow will run daily at 07:00 Asia/Ho_Chi_Minh.
+5. After verification, the scheduled workflow will run daily at 06:50 Asia/Ho_Chi_Minh.
 
 ## Tempo and MPP Integration
 
